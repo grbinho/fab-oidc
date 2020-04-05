@@ -1,6 +1,7 @@
 import os
 from flask import redirect, request
 from flask_appbuilder.security.views import AuthOIDView
+from oauth2client.client import OAuth2Credentials
 from flask_login import login_user
 from flask_admin import expose
 from urllib.parse import quote
@@ -57,15 +58,19 @@ class AuthOIDCView(AuthOIDView):
     @expose('/logout/', methods=['GET', 'POST'])
     def logout(self):
         oidc = self.appbuilder.sm.oid
-
         oidc.logout()
-        super(AuthOIDCView, self).logout()
-        redirect_url = request.url_root.strip(
-            '/') + self.appbuilder.get_url_for_login
+        return super(AuthOIDCView, self).logout()
 
-        logout_uri = oidc.client_secrets.get(
-            'issuer') + '/protocol/openid-connect/logout?redirect_uri='
-        if 'OIDC_LOGOUT_URI' in self.appbuilder.app.config:
-            logout_uri = self.appbuilder.app.config['OIDC_LOGOUT_URI']
-
-        return redirect(logout_uri + quote(redirect_url))
+        # This also does logout in identity provider
+        # app = self.appbuilder.get_app
+        # redirect_url = request.url_root.strip(
+        #     '/') + self.appbuilder.get_url_for_login
+        #
+        # logout_uri = oidc.client_secrets.get(
+        #     'issuer') + '/protocol/openid-connect/logout?redirect_uri='
+        # if 'OIDC_LOGOUT_URI' in app.config:
+        #     logout_uri = app.config['OIDC_LOGOUT_URI']
+        # subject = oidc.user_getinfo(['sub'])['sub']
+        # credentials_store = oidc.credentials_store
+        # id_token = OAuth2Credentials.from_json(credentials_store[subject]).token_response['id_token']
+        # return redirect(logout_uri + str(id_token) + "&post_logout_redirect_uri=" + quote(redirect_url))
