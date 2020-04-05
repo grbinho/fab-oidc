@@ -19,14 +19,14 @@ class AuthOIDCView(AuthOIDView):
         first_name_field = app.config['OIDC_MAPPING_FIRST_NAME_FIELD']
         last_name_field = app.config['OIDC_MAPPING_LAST_NAME_FIELD']
         user_role_field = app.config['OIDC_MAPPING_USER_ROLE_FIELD']
-        airflow_role_map = app.config['OIDC_AIRFLOW_ROLE_MAP']
+        airflow_role_map = dict(app.config['OIDC_AIRFLOW_ROLE_MAP'])
         default_airflow_role = app.config['AUTH_USER_REGISTRATION_ROLE']
 
         def get_airflow_role(oidc_role):
-            if airflow_role_map and airflow_role_map[oidc_role]:
-                airflow_role_map[oidc_role]
+            if airflow_role_map:
+                return airflow_role_map.get(oidc_role, default_airflow_role)
             else:
-                default_airflow_role
+                return default_airflow_role
 
         @self.appbuilder.sm.oid.require_login
         def handle_login():
@@ -37,6 +37,7 @@ class AuthOIDCView(AuthOIDView):
                     username_field,
                     first_name_field,
                     last_name_field,
+                    user_role_field,
                     'email',
                 ])
 
@@ -55,7 +56,6 @@ class AuthOIDCView(AuthOIDView):
 
     @expose('/logout/', methods=['GET', 'POST'])
     def logout(self):
-
         oidc = self.appbuilder.sm.oid
 
         oidc.logout()

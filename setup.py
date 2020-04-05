@@ -16,7 +16,7 @@ def desc():
 
 
 setup(
-    name='grba_io_fab_oidc',
+    name='fab_oidc',
     version='0.0.1',
     url='https://github.com/grbinho/fab-oidc/',
     license='MIT',
