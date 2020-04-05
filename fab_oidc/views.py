@@ -6,21 +6,27 @@ from flask_admin import expose
 from urllib.parse import quote
 
 
-# Set the OIDC field that should be used as a username
-USERNAME_OIDC_FIELD = os.getenv('USERNAME_OIDC_FIELD', default='sub')
-FIRST_NAME_OIDC_FIELD = os.getenv('FIRST_NAME_OIDC_FIELD',
-                                  default='nickname')
-LAST_NAME_OIDC_FIELD = os.getenv('LAST_NAME_OIDC_FIELD',
-                                 default='name')
-
-
 class AuthOIDCView(AuthOIDView):
 
     @expose('/login/', methods=['GET', 'POST'])
     def login(self, flag=True):
 
+        app = self.appbuilder.get_app
         sm = self.appbuilder.sm
         oidc = sm.oid
+
+        username_field = app.config['OIDC_MAPPING_USERNAME_FILED']
+        first_name_field = app.config['OIDC_MAPPING_FIRST_NAME_FIELD']
+        last_name_field = app.config['OIDC_MAPPING_LAST_NAME_FIELD']
+        user_role_field = app.config['OIDC_MAPPING_USER_ROLE_FIELD']
+        airflow_role_map = app.config['OIDC_AIRFLOW_ROLE_MAP']
+        default_airflow_role = app.config['AUTH_USER_REGISTRATION_ROLE']
+
+        def get_airflow_role(oidc_role):
+            if airflow_role_map and airflow_role_map[oidc_role]:
+                airflow_role_map[oidc_role]
+            else:
+                default_airflow_role
 
         @self.appbuilder.sm.oid.require_login
         def handle_login():
@@ -28,18 +34,18 @@ class AuthOIDCView(AuthOIDView):
 
             if user is None:
                 info = oidc.user_getinfo([
-                    USERNAME_OIDC_FIELD,
-                    FIRST_NAME_OIDC_FIELD,
-                    LAST_NAME_OIDC_FIELD,
+                    username_field,
+                    first_name_field,
+                    last_name_field,
                     'email',
                 ])
 
                 user = sm.add_user(
-                    username=info.get(USERNAME_OIDC_FIELD),
-                    first_name=info.get(FIRST_NAME_OIDC_FIELD),
-                    last_name=info.get(LAST_NAME_OIDC_FIELD),
+                    username=info.get(username_field),
+                    first_name=info.get(first_name_field),
+                    last_name=info.get(last_name_field),
                     email=info.get('email'),
-                    role=sm.find_role(sm.auth_user_registration_role)
+                    role=sm.find_role(get_airflow_role(info.get(user_role_field)))
                 )
 
             login_user(user, remember=False)

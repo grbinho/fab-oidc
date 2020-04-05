@@ -11,7 +11,13 @@ class OIDCSecurityManagerMixin:
     def __init__(self, appbuilder):
         super().__init__(appbuilder)
         if self.auth_type == AUTH_OID:
-            self.oid = OpenIDConnect(self.appbuilder.get_app)
+            app = self.appbuilder.get_app
+            app.config.setdefault('OIDC_MAPPING_USERNAME_FILED', 'sub')
+            app.config.setdefault('OIDC_MAPPING_FIRST_NAME_FIELD', 'nickname')
+            app.config.setdefault('OIDC_MAPPING_LAST_NAME_FIELD', 'name')
+            app.config.setdefault('OIDC_MAPPING_USER_ROLE_FIELD', 'user_role')
+            app.config.setdefault('OIDC_AIRFLOW_ROLE_MAP', None)
+            self.oid = OpenIDConnect(app)
             self.authoidview = AuthOIDCView
 
 

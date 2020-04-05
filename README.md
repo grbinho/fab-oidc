@@ -10,13 +10,15 @@ This is roughly inspired by the code in this [stackoverflow](https://stackoverfl
 
 ### Generic
 
-Just override the default security manager in your Flask Appbuilder app.
+Override the default security manager in your Flask Appbuilder app.
 
 ```python
 from fab_oidc.security import OIDCSecurityManager
 
 appbuilder = AppBuilder(app, db.session, security_manager_class=OIDCSecurityManager)
 ```
+
+
 
 ### [Airflow]
 Airflow provides a hook in the `webserver_config.py` file where you can specify a security manager class.
@@ -29,6 +31,28 @@ SECURITY_MANAGER_CLASS = AirflowOIDCSecurityManager
 
 Airflow now requires that your `SECURITY_MANAGER_CLASS` is a subclass of `AirflowSecurityManager`.
 Use the special `AirflowOIDCSecurityManager` that is only defined if you're using this library alongside Airflow.
+
+Also, don't forget to set up claim mappings. 
+These are the defaults. 
+Override as needed.
+
+```python
+OIDC_MAPPING_USERNAME_FILED = 'sub'
+OIDC_MAPPING_FIRST_NAME_FIELD = 'nickname'
+OIDC_MAPPING_LAST_NAME_FIELD = 'name'
+OIDC_MAPPING_USER_ROLE_FIELD = 'user_role'
+```
+
+It is also possible to setup specific role mapping if you already have roles that don't directly correspond to Airflow roles.
+You can do that by configuring the following map in `webserver_config.py`.
+If a role is missing in the map `AUTH_USER_REGISTRATION_ROLE` is going to be used.
+
+```python
+OIDC_AIRFLOW_ROLE_MAP = {
+    'YourAdminRole': 'Admin'
+}
+```
+Don't forget that it's also possible to set up roles in airflow that can directly match your own.
 
 ### [Superset]
 Superset works in a a similar way. Just as in Airflow,
