@@ -16,9 +16,9 @@ def desc():
 
 
 setup(
-    name='fab_oidc',
-    version='0.0.9',
-    url='https://github.com/ministryofjustice/fab-oidc/',
+    name='grba_io_fab_oidc',
+    version='0.0.1',
+    url='https://github.com/grbinho/fab-oidc/',
     license='MIT',
     author='ministryofjustice',
     author_email='dev@digital.justice.gov.uk',
